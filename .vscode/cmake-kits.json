@@ -1,0 +1,6 @@
+[
+    {
+        "name": "dekKitPro64",
+        "toolchainFile": "${workspaceRoot}/switch/cmake/DevkitA64Libnx.cmake"
+    }
+]
