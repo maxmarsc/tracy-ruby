@@ -91,6 +91,13 @@ VALUE rb_zone(VALUE /* self*/, VALUE name) {
 #endif
 }
 
+VALUE rb_frameMark(VALUE /*self*/) {
+#ifdef TRACY_ENABLE
+  ___tracy_emit_frame_mark(nullptr);
+#endif
+  return Qnil;
+}
+
 }  // namespace
 
 extern "C" {
@@ -100,5 +107,6 @@ extern "C" {
     rb_define_singleton_method(mTracy, "shutdown", rb_shutdown, 0);
     rb_define_singleton_method(mTracy, "started?", rb_started, 0);
     rb_define_singleton_method(mTracy, "zone", rb_zone, 1);
+    rb_define_singleton_method(mTracy, "frame_mark", rb_frameMark, 0);
   }
 }
