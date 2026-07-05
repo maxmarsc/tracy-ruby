@@ -98,6 +98,15 @@ VALUE rb_frameMark(VALUE /*self*/) {
   return Qnil;
 }
 
+VALUE rb_message(VALUE /*self*/, VALUE message) {
+#ifdef TRACY_ENABLE
+  const char* msg = StringValueCStr(message);
+  auto len        = static_cast<size_t>(RSTRING_LEN(message));
+  ___tracy_emit_message(msg, len, 0);
+#endif
+  return Qnil;
+}
+
 }  // namespace
 
 extern "C" {
@@ -108,5 +117,6 @@ extern "C" {
     rb_define_singleton_method(mTracy, "started?", rb_started, 0);
     rb_define_singleton_method(mTracy, "zone", rb_zone, 1);
     rb_define_singleton_method(mTracy, "frame_mark", rb_frameMark, 0);
+    rb_define_singleton_method(mTracy, "message", rb_message, 1);
   }
 }
