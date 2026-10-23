@@ -84,7 +84,7 @@ target_link_libraries(
 
 target_compile_definitions(
   tracy_ruby
-  PRIVATE TRACY_ENABLE
+  PUBLIC TRACY_ENABLE
 )
 
 set_target_properties(
