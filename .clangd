@@ -1,0 +1,19 @@
+---
+If:
+  PathMatch: 
+    - arm_neon_clangd_fix.h
+    - arm_acle_clangd_fix.h
+Diagnostics:
+  Suppress: '*'
+
+---
+CompileFlags:
+  Add: 
+    - "-D__CLANGD__"
+    # - "--target=aarch64-none-elf"
+  Remove: 
+    - "-mtp=soft"
+    - "-march=armv8-a+crc+crypto"
+    - "-fmodule-mapper=*"
+    - "-fdeps-format=*"
+    - "-fmodules-ts"
