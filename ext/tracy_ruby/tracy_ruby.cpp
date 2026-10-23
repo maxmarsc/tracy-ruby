@@ -1,5 +1,6 @@
 #include <ruby.h>
 #include <ruby/vm.h>
+#include <cstring>
 #include <tracy/TracyC.h>
 
 #include "tracy_ruby.h"
@@ -75,8 +76,8 @@ VALUE rb_zone(VALUE /* self*/, VALUE name) {
       func = rb_id2name(callee);
     }
 
-    auto srcloc = ___tracy_alloc_srcloc_name(line, file, strlen(file), func,
-                                             strlen(func), nptr, nlen, 0);
+    auto srcloc = ___tracy_alloc_srcloc_name(line, file, std::strlen(file), func,
+                                             std::strlen(func), nptr, nlen, 0);
 
     guard.ctx     = ___tracy_emit_zone_begin_alloc(srcloc, 1);
     guard.emitted = 1;
