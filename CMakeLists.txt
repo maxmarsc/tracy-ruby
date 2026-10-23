@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
 project(tracy-ruby LANGUAGES C CXX)
 
+# ##############################################################################
+# Project Setup
+# ##############################################################################
+
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,6 +13,9 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 include(GNUInstallDirs)
 
+# ##############################################################################
+# Tracy & tracy_ruby setup
+# ##############################################################################
 set(TRACY_ENABLE ON)
 set(TRACY_ON_DEMAND ON)
 if(SWITCH OR NOT BUILD_SHARED_LIBS)
@@ -22,11 +29,6 @@ set(TRACY_DELAYED_INIT ON)
 set(TRACY_MANUAL_LIFETIME ON)
 
 if(SWITCH)
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/switch/cmake)
-  find_package(Libnx REQUIRED)
-  include(SwitchTools)
-  include(Ruby)
-
   # network & discovery
   set(TRACY_ONLY_IPV4 ON)
   set(TRACY_NO_BROADCAST ON)
@@ -40,6 +42,17 @@ if(SWITCH)
   # Misc
   set(TRACY_NO_CRASH_HANDLER ON)
   set(CMAKE_DL_LIBS "")
+endif()
+
+# ##############################################################################
+# Target setup
+# ##############################################################################
+
+if(SWITCH)
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/switch/cmake)
+  find_package(Libnx REQUIRED)
+  include(SwitchTools)
+  include(Ruby)
 else()
   find_package(Ruby 3.2 REQUIRED)
 
@@ -56,21 +69,29 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/tracy)
 
 if(BUILD_SHARED_LIBS)
-  add_library(tracy_ruby MODULE ext/tracy_ruby/tracy_ruby.cpp)
+  add_library(
+    tracy_ruby MODULE ${CMAKE_CURRENT_SOURCE_DIR}/ext/tracy_ruby/tracy_ruby.cpp
+  )
 
   execute_process(
     COMMAND ${Ruby_EXECUTABLE} -e "print RbConfig::CONFIG['DLEXT']"
     OUTPUT_VARIABLE RUBY_DLEXT COMMAND_ERROR_IS_FATAL ANY
   )
 
+  if(APPLE)
+    set(_origin "@loader_path")
+  else()
+    set(_origin "$ORIGIN")
+  endif()
+
   set_target_properties(
     tracy_ruby
     PROPERTIES PREFIX ""
                SUFFIX ".${RUBY_DLEXT}"
-               BUILD_RPATH "$ORIGIN" # find libTracyClient.so next to
-                                     # tracy_ruby.so
-               INSTALL_RPATH "$ORIGIN"
-  ) # (macOS: @loader_path)
+               # find libTracyClient.so next to tracy_ruby.so
+               BUILD_RPATH "${_origin}"
+               INSTALL_RPATH "${_origin}"
+  )
 else()
   add_library(
     tracy_ruby ${CMAKE_CURRENT_SOURCE_DIR}/ext/tracy_ruby/tracy_ruby.cpp
@@ -90,23 +111,20 @@ target_compile_definitions(
 set_target_properties(
   tracy_ruby
   PROPERTIES CXX_STANDARD 20
+             PUBLIC_HEADER
+             ${CMAKE_CURRENT_SOURCE_DIR}/ext/tracy_ruby/tracy_ruby.h
 )
 
-if(BUILD_SHARED_LIBS)
-  execute_process(
-    COMMAND ${Ruby_EXECUTABLE} -e "print RbConfig::CONFIG['sitearchdir']"
-    OUTPUT_VARIABLE RUBY_SITEARCHDIR COMMAND_ERROR_IS_FATAL ANY
-  )
+# ##############################################################################
+# Installation
+# ##############################################################################
+file(RELATIVE_PATH _rel ${CMAKE_INSTALL_FULL_BINDIR}
+     ${CMAKE_INSTALL_FULL_LIBDIR}
+)
 
-  set(TRACY_RUBY_INSTALL_DIR
-      "${RUBY_SITEARCHDIR}"
-      CACHE PATH "Install directory of the tracy_ruby extension"
-  )
-
-  # Installed extension finds the installed libTracyClient.so
-  set_target_properties(
-    tracy_ruby PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
-  )
-
-  install(TARGETS tracy_ruby LIBRARY DESTINATION ${TRACY_RUBY_INSTALL_DIR})
-endif()
+install(
+  TARGETS tracy_ruby
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
