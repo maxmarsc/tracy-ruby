@@ -16,6 +16,10 @@ include(GNUInstallDirs)
 # ##############################################################################
 # Tracy & tracy_ruby setup
 # ##############################################################################
+# Tracy declares its options with option(), and its own cmake_minimum_required()
+# resets CMP0077 to OLD, which would discard the variables set below.
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 set(TRACY_ENABLE ON)
 set(TRACY_ON_DEMAND ON)
 if(SWITCH OR NOT BUILD_SHARED_LIBS)
