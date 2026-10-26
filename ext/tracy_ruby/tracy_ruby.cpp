@@ -1,7 +1,7 @@
-#include <ruby.h>
-#include <ruby/vm.h>
 #include <cstring>
 #include <tracy/TracyC.h>
+#include <ruby.h>
+#include <ruby/vm.h>
 
 #include "tracy_ruby.h"
 

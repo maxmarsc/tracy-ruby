@@ -58,7 +58,7 @@ if(SWITCH)
   include(SwitchTools)
   include(Ruby)
 else()
-  find_package(Ruby 3.2 REQUIRED)
+  find_package(Ruby 3.0 REQUIRED) # Requires Ruby >= 3.0.x
 
   add_library(ruby_ext_api INTERFACE)
   target_include_directories(ruby_ext_api INTERFACE ${Ruby_INCLUDE_DIRS})
@@ -130,5 +130,6 @@ install(
   TARGETS tracy_ruby
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
